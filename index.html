@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Web RTS</title>
+    <style>
+        body {
+            margin: 0; padding: 0; overflow: hidden;
+            background-color: #000; color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        /* Lobby UI */
+        #lobbyUI {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+        .lobby-box {
+            background: #222; padding: 30px; border-radius: 12px;
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border: 2px solid #4CAF50; min-width: 300px;
+        }
+        .lobby-box h1 { margin-top: 0; color: #4CAF50; }
+        .lobby-box input {
+            padding: 10px; width: 80%; margin: 10px 0; border-radius: 6px;
+            border: 1px solid #555; background: #111; color: #fff;
+        }
+        .lobby-box button {
+            padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 6px;
+            font-weight: bold; font-size: 14px;
+        }
+        
+        /* Floating UI Elements */
+        .day-indicator {
+            position: absolute; top: 15px; left: 20px;
+            background-color: rgba(30, 30, 30, 0.85); padding: 10px 20px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #444; z-index: 10; backdrop-filter: blur(5px);
+            font-weight: bold; font-size: 18px; color: #4CAF50; letter-spacing: 2px;
+        }
+        .resource-bar {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; background-color: rgba(30, 30, 30, 0.85); padding: 12px 25px;
+            border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #444; z-index: 10; backdrop-filter: blur(5px);
+        }
+        .res-item { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 16px; }
+        .res-icon { display: inline-block; width: 14px; height: 14px; border-radius: 3px; }
+        .icon-wood { background-color: #8B4513; } .icon-iron { background-color: #A9A9A9; }
+        .icon-coal { background-color: #333333; border: 1px solid #555; } .icon-food { background-color: #FF6347; }
+        
+        .ui-panel {
+            position: absolute; right: 20px; top: 20px;
+            width: 280px; background-color: rgba(44, 44, 44, 0.85); border-radius: 8px;
+            padding: 15px; display: flex; flex-direction: column; border: 1px solid #444; gap: 15px;
+            z-index: 10; backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .panel-section h3 { margin: 0 0 10px 0; color: #4CAF50; border-bottom: 1px solid #555; padding-bottom: 5px; font-size: 16px; }
+        
+        button { background: #2196F3; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 5px;}
+        button:hover { background: #1976d2; }
+        button.active-mode { background: #f44336; border: 2px solid white; }
+        button.btn-danger { background: #f44336; }
+        button.btn-danger:hover { background: #d32f2f; }
+
+        .queue-list { list-style: none; padding: 0; margin: 0; min-height: 80px; }
+        .queue-item { background: rgba(30, 30, 30, 0.9); padding: 8px; margin-bottom: 5px; border-radius: 4px; font-size: 13px; border-left: 3px solid #666; }
+        .queue-item.active { border-left-color: #4CAF50; background: rgba(58, 30, 30, 0.9); }
+        
+        #combatLog { font-size:12px; color:#ccc; height: 100px; overflow-y:auto; background: rgba(30, 30, 30, 0.9); padding: 8px; border-radius: 4px; border: 1px solid #555;}
+        
+        .canvas-container {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+        }
+        canvas { border: none; cursor: crosshair; display: block; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div class="day-indicator">DAY <span id="dayCount">1</span></div>
+    
+    <div class="resource-bar">
+        <div class="res-item"><span class="res-icon icon-wood"></span> Wood: <span id="resWood">20</span></div>
+        <div class="res-item"><span class="res-icon icon-iron"></span> Iron: <span id="resIron">0</span></div>
+        <div class="res-item"><span class="res-icon icon-coal"></span> Coal: <span id="resCoal">0</span></div>
+        <div class="res-item"><span class="res-icon icon-food"></span> Food: <span id="resFood">0</span></div>
+    </div>
+    
+    <div class="ui-panel">
+        <div class="panel-section">
+            <h3>Construction & Spawning</h3>
+            <button id="btnBuildHut">Build Hut (10 Wood)</button>
+            <p style="font-size: 11px; margin-top:0px; margin-bottom:10px; color:#bbb;">Spawns 1 Worker. Placed on Plains.</p>
+            
+            <button id="btnBuildBarracks">Build Military Base (30 Wood, 10 Iron)</button>
+            <p style="font-size: 11px; margin-top:0px; margin-bottom:10px; color:#bbb;">Spawns 1 Soldier. Placed on Plains.</p>
+            
+            <button id="btnBuildDock">Build Naval Base (40 Wood)</button>
+            <p style="font-size: 11px; margin-top:0px; margin-bottom:10px; color:#bbb;">Spawns 1 Ship. Placed on Coastal Sea.</p>
+            
+            <button id="btnSpawnEnemy" class="btn-danger">Spawn Enemy Unit</button>
+        </div>
+
+        <div class="panel-section">
+            <h3>Player Unit Status</h3>
+            <ul class="queue-list" id="queueList">
+                <li class="queue-item" style="color: #888; text-align:center;">Idle</li>
+            </ul>
+        </div>
+
+        <div class="panel-section">
+            <h3>Combat Log</h3>
+            <div id="combatLog"></div>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="mapCanvas"></canvas>
+    </div>
+
+    <!-- Multiplayer Lobby -->
+    <div id="lobbyUI">
+        <div class="lobby-box">
+            <h1>Ultimate Web RTS</h1>
+            <p style="color:#aaa; font-size:14px;">Select your multiplayer mode</p>
+            <button id="btnHost" style="background:#4CAF50; color:#fff; border:none;">Host Game (Create Room)</button>
+            <div style="margin:20px 0; color:#666;">--- OR ---</div>
+            <input type="text" id="joinIdInput" placeholder="Enter Host ID to Join" />
+            <br>
+            <button id="btnJoin" style="background:#2196F3; color:#fff; border:none;">Join Game</button>
+            
+            <div id="lobbyStatus" style="margin-top:20px; font-weight:bold; color:#FF9800;"></div>
+        </div>
+    </div>
+
+    <!-- Scripts are imported here in dependency order -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="js/globals.js"></script>
+    <script src="js/terrain.js"></script>
+    <script src="js/pathfinding.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/building.js"></script>
+    <script src="js/unit.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
