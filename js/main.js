@@ -157,25 +157,46 @@ function startGame(seed) {
     // Generate terrain based on seed
     generateMap();
     
-    // Initialize starting position
-    let startX = Math.floor(WIDTH / 2);
-    let startY = Math.floor(HEIGHT / 2);
-    let found = false;
+    // Initialize random starting position for Player 1
+    let startX = Math.floor(seededRandom() * (WIDTH - 40)) + 20;
+    let startY = Math.floor(seededRandom() * (HEIGHT - 40)) + 20;
+    let p1Found = false;
     
-    // Find nearest PLAINS
-    for(let r=0; r<15; r++) {
+    // Find nearest PLAINS for Player 1
+    for(let r=0; r<20; r++) {
         for(let dx=-r; dx<=r; dx++) {
             for(let dy=-r; dy<=r; dy++) {
                 let tx = startX + dx; let ty = startY + dy;
                 if(tx >= 0 && tx < WIDTH && ty >= 0 && ty < HEIGHT) {
                     if (map[ty][tx] === TERRAIN.PLAINS) {
-                        startX = tx; startY = ty; found = true; break;
+                        startX = tx; startY = ty; p1Found = true; break;
                     }
                 }
             }
-            if(found) break;
+            if(p1Found) break;
         }
-        if(found) break;
+        if(p1Found) break;
+    }
+    
+    // Determine mirrored position for Player 2
+    let enemyStartX = WIDTH - startX - 1;
+    let enemyStartY = HEIGHT - startY - 1;
+    let p2Found = false;
+    
+    // Find nearest PLAINS for Player 2
+    for(let r=0; r<20; r++) {
+        for(let dx=-r; dx<=r; dx++) {
+            for(let dy=-r; dy<=r; dy++) {
+                let tx = enemyStartX + dx; let ty = enemyStartY + dy;
+                if(tx >= 0 && tx < WIDTH && ty >= 0 && ty < HEIGHT) {
+                    if (map[ty][tx] === TERRAIN.PLAINS) {
+                        enemyStartX = tx; enemyStartY = ty; p2Found = true; break;
+                    }
+                }
+            }
+            if(p2Found) break;
+        }
+        if(p2Found) break;
     }
     
     // Spawn Townhall for Player 1 (Host)
@@ -184,9 +205,7 @@ function startGame(seed) {
     townhallP1.team = 1;
     activeBuildings.push(townhallP1);
     
-    // Spawn Townhall for Player 2 (Client) on the opposite side
-    let enemyStartX = WIDTH - startX - 1;
-    let enemyStartY = HEIGHT - startY - 1;
+    // Spawn Townhall for Player 2 (Client)
     const townhallP2 = new Building(enemyStartX, enemyStartY, 'TOWNHALL');
     townhallP2.hp = 500;
     townhallP2.team = 2;

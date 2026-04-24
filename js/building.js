@@ -21,9 +21,11 @@ class Building {
             ctx.beginPath(); ctx.moveTo(px, py + 6); ctx.lineTo(px + TILE_SIZE/2, py); ctx.lineTo(px + TILE_SIZE, py + 6);
             ctx.fillStyle = '#8B4513'; ctx.fill(); ctx.closePath();
         } else if (this.type === 'TOWNHALL') {
-            ctx.fillStyle = '#2196F3'; ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE); // Base
+            const teamColor = this.team === myPlayerId ? '#2196F3' : '#f44336';
+            ctx.fillStyle = teamColor; ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE); // Base
             ctx.fillStyle = '#FFD700'; ctx.fillRect(px + 4, py - 10, 2, 10); // Flag pole
-            ctx.fillStyle = '#f44336'; ctx.fillRect(px + 6, py - 10, 8, 6); // Flag
+            // ctx.fillStyle = this.team === myPlayerId ? '#f44336' : '#2196F3'; // Flag
+            // ctx.fillRect(px + 6, py - 10, 8, 6); 
         } else if (this.type === 'BARRACKS') {
             ctx.fillStyle = '#78909C'; ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
             ctx.fillStyle = '#455A64'; ctx.fillRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 8);

@@ -14,13 +14,14 @@ class Unit {
         this.maxHp = 100; this.hp = 100;
         this.attackRange = 60; this.dps = 25;
         this.isAttacking = false; this.attackTarget = null;
-        this.color = team === 1 ? '#2196F3' : '#f44336';
+        // Make 'My' units always Blue, and 'Enemy' units always Red locally
+        this.color = team === myPlayerId ? '#2196F3' : '#f44336';
     }
     
     issueCommand(cmd, queue = false) {
         if (!queue) { this.commands = []; this.currentCommand = null; }
         this.commands.push(cmd);
-        if(this.team === 1) updateQueueUI();
+        if(this.team === myPlayerId) updateQueueUI();
     }
 
     update(deltaTime) {
@@ -58,7 +59,7 @@ class Unit {
         // Command processing
         if (!this.currentCommand && this.commands.length > 0) {
             this.currentCommand = this.commands.shift(); this.timer = 0;
-            if(this.team === 1) updateQueueUI();
+            if(this.team === myPlayerId) updateQueueUI();
         }
 
         if (this.currentCommand) {
