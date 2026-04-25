@@ -259,17 +259,27 @@ canvas.addEventListener('mousedown', (e) => {
         } else if (e.code === 'KeyA' || e.key === 'a' || e.key === 'A' || e.key === 'ㅁ') {
             const selectedShips = units.filter(u => u.team === myPlayerId && u.isSelected && u.type === 'SHIP');
             selectedShips.forEach(u => {
-                projectiles.push(new Projectile(u.x, u.y, -1, 0, u.dps, u.team));
-                if (typeof broadcastCommand === 'function') {
-                    broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: -1, dirY: 0, dps: u.dps, team: u.team });
+                if (u.cannonCooldown <= 0) {
+                    u.cannonCooldown = 3000;
+                    projectiles.push(new Projectile(u.x, u.y, -1, 0, u.dps, u.team));
+                    if (typeof broadcastCommand === 'function') {
+                        broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: -1, dirY: 0, dps: u.dps, team: u.team });
+                    }
+                } else {
+                    createFloatingText('Reloading...', u.x, u.y - 15, '#ff9800');
                 }
             });
         } else if (e.code === 'KeyD' || e.key === 'd' || e.key === 'D' || e.key === 'ㅇ') {
             const selectedShips = units.filter(u => u.team === myPlayerId && u.isSelected && u.type === 'SHIP');
             selectedShips.forEach(u => {
-                projectiles.push(new Projectile(u.x, u.y, 1, 0, u.dps, u.team));
-                if (typeof broadcastCommand === 'function') {
-                    broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: 1, dirY: 0, dps: u.dps, team: u.team });
+                if (u.cannonCooldown <= 0) {
+                    u.cannonCooldown = 3000;
+                    projectiles.push(new Projectile(u.x, u.y, 1, 0, u.dps, u.team));
+                    if (typeof broadcastCommand === 'function') {
+                        broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: 1, dirY: 0, dps: u.dps, team: u.team });
+                    }
+                } else {
+                    createFloatingText('Reloading...', u.x, u.y - 15, '#ff9800');
                 }
             });
         }

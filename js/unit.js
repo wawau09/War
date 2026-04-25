@@ -42,6 +42,7 @@ class Unit {
         this.carriedResource = null;
         this.speed = 45; this.radius = 9;
         this.commands = []; this.currentCommand = null; this.timer = 0;
+        this.cannonCooldown = 0;
         
         // Combat
         this.maxHp = 100; this.hp = 100;
@@ -58,6 +59,8 @@ class Unit {
     }
 
     update(deltaTime) {
+        if (this.cannonCooldown > 0) this.cannonCooldown -= deltaTime;
+        
         // Auto-Attack logic
         if (this.type !== 'SHIP') {
             if (!this.isAttacking) {
