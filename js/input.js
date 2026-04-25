@@ -79,14 +79,14 @@ function executeBuildCommand(playerId, cmd) {
             playerResources.wood -= 10; playerResources.food -= 10; updateResUI();
         }
         const soldier = new Unit(b.tileX * TILE_SIZE + TILE_SIZE/2, b.tileY * TILE_SIZE + TILE_SIZE + 5, playerId, cmd.newUnitId);
-        soldier.type = 'SOLDIER'; soldier.hp = 200; soldier.maxHp = 200; soldier.dps = 40; soldier.color = '#e74c3c';
+        soldier.type = 'SOLDIER'; soldier.hp = 200; soldier.maxHp = 200; soldier.dps = 40; soldier.speed = 50; soldier.color = '#e74c3c';
         units.push(soldier);
     } else if (cmd.unitType === 'SHIP') {
         if (playerId === myPlayerId) {
             playerResources.wood -= 30; updateResUI();
         }
         const ship = new Unit(b.tileX * TILE_SIZE + TILE_SIZE/2, b.tileY * TILE_SIZE + TILE_SIZE + 5, playerId, cmd.newUnitId);
-        ship.type = 'SHIP'; ship.hp = 300; ship.maxHp = 300; ship.speed = 120; ship.color = '#3498db';
+        ship.type = 'SHIP'; ship.hp = 300; ship.maxHp = 300; ship.dps = 50; ship.speed = 120; ship.radius = 12; ship.color = '#3498db';
         units.push(ship);
     }
 }
@@ -204,7 +204,7 @@ canvas.addEventListener('mousedown', (e) => {
         }
         
         const b = activeBuildings.find(b => b.tileX === tx && b.tileY === ty && b.team === myPlayerId);
-        if (b) {
+        if (b && selectedUnits.length === 0) {
             let buildCmd = null;
             const newUnitId = generateNetworkId();
             if (b.type === 'TOWNHALL' && playerResources.food >= 10) {
@@ -256,6 +256,22 @@ canvas.addEventListener('mousedown', (e) => {
                     }
                 });
             }
+        } else if (e.key === 'a' || e.key === 'A') {
+            const selectedShips = units.filter(u => u.team === myPlayerId && u.isSelected && u.type === 'SHIP');
+            selectedShips.forEach(u => {
+                projectiles.push(new Projectile(u.x, u.y, -1, 0, u.dps, u.team));
+                if (typeof broadcastCommand === 'function') {
+                    broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: -1, dirY: 0, dps: u.dps, team: u.team });
+                }
+            });
+        } else if (e.key === 'd' || e.key === 'D') {
+            const selectedShips = units.filter(u => u.team === myPlayerId && u.isSelected && u.type === 'SHIP');
+            selectedShips.forEach(u => {
+                projectiles.push(new Projectile(u.x, u.y, 1, 0, u.dps, u.team));
+                if (typeof broadcastCommand === 'function') {
+                    broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: 1, dirY: 0, dps: u.dps, team: u.team });
+                }
+            });
         }
     });
 }

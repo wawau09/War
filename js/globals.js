@@ -56,6 +56,7 @@ if (canvas) {
 
 // UI Helpers
 const floatingTexts = [];
+const projectiles = [];
 function createFloatingText(text, x, y, color = '#ffffff') {
     floatingTexts.push({ text, x, y, life: 1.0, color });
 }

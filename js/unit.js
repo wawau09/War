@@ -1,6 +1,39 @@
 // ==========================================
 // 4. UNIT & COMBAT & COMMAND SYSTEM
 // ==========================================
+class Projectile {
+    constructor(x, y, dx, dy, dps, team) {
+        this.x = x; this.y = y; this.dx = dx; this.dy = dy;
+        this.dps = dps; this.team = team;
+        this.radius = 4; this.life = 1.5; this.speed = 250;
+    }
+    update(deltaTime) {
+        this.x += this.dx * this.speed * (deltaTime / 1000);
+        this.y += this.dy * this.speed * (deltaTime / 1000);
+        this.life -= deltaTime / 1000;
+        if (this.life > 0) {
+            for (let e of units) {
+                if (e.team !== this.team && e.hp > 0) {
+                    const dist = Math.sqrt((e.x - this.x)**2 + (e.y - this.y)**2);
+                    if (dist <= e.radius + this.radius) {
+                        e.hp -= this.dps;
+                        if (e.hp <= 0) {
+                            const idx = units.indexOf(e);
+                            if (idx > -1) units.splice(idx, 1);
+                        }
+                        createFloatingText('-' + this.dps, e.x, e.y - 15, '#ff0000');
+                        this.life = 0; break;
+                    }
+                }
+            }
+        }
+    }
+    draw(ctx) {
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#000000'; ctx.fill();
+    }
+}
+
 class Unit {
     constructor(x, y, team, id = null) {
         this.id = id || generateNetworkId();
@@ -26,32 +59,34 @@ class Unit {
 
     update(deltaTime) {
         // Auto-Attack logic
-        if (!this.isAttacking) {
-            for (let e of units) {
-                if (e.team !== this.team) {
-                    const dist = Math.sqrt((e.x - this.x)**2 + (e.y - this.y)**2);
-                    if (dist <= this.attackRange) {
-                        this.isAttacking = true; this.attackTarget = e; break;
+        if (this.type !== 'SHIP') {
+            if (!this.isAttacking) {
+                for (let e of units) {
+                    if (e.team !== this.team) {
+                        const dist = Math.sqrt((e.x - this.x)**2 + (e.y - this.y)**2);
+                        if (dist <= this.attackRange) {
+                            this.isAttacking = true; this.attackTarget = e; break;
+                        }
                     }
                 }
             }
-        }
-        
-        if (this.isAttacking && this.attackTarget) {
-            const dist = Math.sqrt((this.attackTarget.x - this.x)**2 + (this.attackTarget.y - this.y)**2);
-            if (dist > this.attackRange || this.attackTarget.hp <= 0) {
-                this.isAttacking = false; this.attackTarget = null;
-            } else {
-                this.attackTimer = (this.attackTimer || 0) + deltaTime;
-                if (this.attackTimer >= 1000) {
-                    this.attackTarget.hp -= this.dps;
-                    if (this.team === 1) logCombat(`${this.type} attacked enemy for ${this.dps} dmg!`);
-                    if (this.attackTarget.hp <= 0) {
-                        this.isAttacking = false; this.attackTarget = null;
-                        const idx = units.indexOf(this.attackTarget);
-                        if (idx > -1) units.splice(idx, 1);
+            
+            if (this.isAttacking && this.attackTarget) {
+                const dist = Math.sqrt((this.attackTarget.x - this.x)**2 + (this.attackTarget.y - this.y)**2);
+                if (dist > this.attackRange || this.attackTarget.hp <= 0) {
+                    this.isAttacking = false; this.attackTarget = null;
+                } else {
+                    this.attackTimer = (this.attackTimer || 0) + deltaTime;
+                    if (this.attackTimer >= 1000) {
+                        this.attackTarget.hp -= this.dps;
+                        if (this.team === 1) logCombat(`${this.type} attacked enemy for ${this.dps} dmg!`);
+                        if (this.attackTarget.hp <= 0) {
+                            this.isAttacking = false; this.attackTarget = null;
+                            const idx = units.indexOf(this.attackTarget);
+                            if (idx > -1) units.splice(idx, 1);
+                        }
+                        this.attackTimer = 0;
                     }
-                    this.attackTimer = 0;
                 }
             }
         }
@@ -268,7 +303,7 @@ class Unit {
 
     draw(ctx) {
         // Combat Laser
-        if (this.isAttacking && this.attackTarget) {
+        if (this.type !== 'SHIP' && this.isAttacking && this.attackTarget) {
             ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.attackTarget.x, this.attackTarget.y);
             ctx.strokeStyle = this.color; ctx.lineWidth = 2; ctx.stroke(); ctx.lineWidth = 1;
         }

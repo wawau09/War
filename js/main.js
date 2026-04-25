@@ -48,6 +48,12 @@ function gameLoop(currentTime) {
     // --- Updates ---
     units.forEach(u => u.update(deltaTime));
     activeBuildings.forEach(b => b.update(deltaTime));
+    projectiles.forEach(p => p.update(deltaTime));
+    
+    // Cleanup dead projectiles
+    for (let i = projectiles.length - 1; i >= 0; i--) {
+        if (projectiles[i].life <= 0) projectiles.splice(i, 1);
+    }
 
     // --- Combat System ---
     for (let i = 0; i < units.length; i++) {
@@ -133,6 +139,7 @@ function gameLoop(currentTime) {
     }
 
     units.forEach(u => u.draw(ctx));
+    projectiles.forEach(p => p.draw(ctx));
 
     // --- Render Floating Texts ---
     for (let i = floatingTexts.length - 1; i >= 0; i--) {

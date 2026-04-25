@@ -125,6 +125,11 @@ function receiveCommand(data) {
              ship.type = 'SHIP'; ship.hp = 300; ship.maxHp = 300; ship.dps = 50; ship.speed = 120; ship.radius = 12;
              units.push(ship);
         }
+    } else if (data.action === 'fire_cannon') {
+        const u = units.find(unit => unit.id === data.unitId);
+        if (u) {
+            projectiles.push(new Projectile(u.x, u.y, data.dirX, data.dirY, data.dps, data.team));
+        }
     }
 }
 
