@@ -260,7 +260,7 @@ canvas.addEventListener('mousedown', (e) => {
             const selectedShips = units.filter(u => u.team === myPlayerId && u.isSelected && u.type === 'SHIP');
             selectedShips.forEach(u => {
                 if (u.cannonCooldown <= 0) {
-                    u.cannonCooldown = 3000;
+                    u.cannonCooldown = 1000;
                     projectiles.push(new Projectile(u.x, u.y, -1, 0, u.dps, u.team));
                     if (typeof broadcastCommand === 'function') {
                         broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: -1, dirY: 0, dps: u.dps, team: u.team });
@@ -273,7 +273,7 @@ canvas.addEventListener('mousedown', (e) => {
             const selectedShips = units.filter(u => u.team === myPlayerId && u.isSelected && u.type === 'SHIP');
             selectedShips.forEach(u => {
                 if (u.cannonCooldown <= 0) {
-                    u.cannonCooldown = 3000;
+                    u.cannonCooldown = 1000;
                     projectiles.push(new Projectile(u.x, u.y, 1, 0, u.dps, u.team));
                     if (typeof broadcastCommand === 'function') {
                         broadcastCommand({ action: 'fire_cannon', unitId: u.id, dirX: 1, dirY: 0, dps: u.dps, team: u.team });
